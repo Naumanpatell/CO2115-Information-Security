@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CO2115 Week 5 – Demo Login (Local)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5; margin: 2rem; }
+    .card { max-width: 860px; border: 1px solid #ddd; border-radius: 12px; padding: 1.25rem 1.5rem; }
+    code { background: #f6f6f6; padding: 0.1rem 0.3rem; border-radius: 6px; }
+    button { padding: 0.55rem 0.9rem; border-radius: 10px; border: 1px solid #bbb; background: white; cursor: pointer; }
+    button.primary { border-color: #222; }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .muted { color: #555; }
+    .ok { color: #0b6; font-weight: 600; }
+    .warn { color: #b30; font-weight: 600; }
+    .small { font-size: 0.95rem; }
+    .box { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 0.75rem 1rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>CO2115 Week 5 – Demo Login (Local)</h1>
+    <p class="muted">
+      This is a teaching-only demo to illustrate how a browser stores a session token in a cookie.
+      It is <strong>not</strong> a real login system.
+    </p>
+
+    <div class="box">
+      <p><strong>Demo cookie name:</strong> <code>demo_session</code></p>
+      <p class="small muted">
+        When you click <em>Log in (demo)</em>, this page writes a cookie called <code>demo_session</code>
+        and then takes you to <code>protected_demo.html</code>.
+      </p>
+    </div>
+
+    <h2>Actions</h2>
+    <div class="row">
+      <button class="primary" id="loginBtn">Log in (demo)</button>
+      <button id="clearBtn">Clear demo cookie</button>
+      <button id="goProtectedBtn">Go to protected page</button>
+    </div>
+
+    <p id="status" class="small"></p>
+
+    <h2>Notes for students</h2>
+    <ul class="small">
+      <li>Use the browser DevTools to inspect cookies (Storage/Application tab) and observe changes.</li>
+      <li>Open this demo via <code>http://localhost:8000/login_demo.html</code> (not <code>file://</code>), so cookies behave normally.</li>
+    </ul>
+  </div>
+
+<script>
+  function randomToken(len = 24) {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let out = "";
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function setDemoCookie() {
+    const token = "demo_" + randomToken(24);
+    document.cookie = "demo_session=" + token + "; Max-Age=3600; Path=/; SameSite=Lax";
+    return token;
+  }
+
+  function clearDemoCookie() {
+    document.cookie = "demo_session=; Max-Age=0; Path=/; SameSite=Lax";
+  }
+
+  function getDemoCookie() {
+    const parts = document.cookie.split(";").map(s => s.trim());
+    for (const p of parts) {
+      if (p.startsWith("demo_session=")) return p.substring("demo_session=".length);
+    }
+    return null;
+  }
+
+  function setStatus(msg, cls) {
+    const el = document.getElementById("status");
+    el.className = "small " + (cls || "");
+    el.textContent = msg;
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", () => {
+    const token = setDemoCookie();
+    setStatus("Demo cookie set: demo_session=" + token + " (now redirecting to protected page...)", "ok");
+    setTimeout(() => window.location.href = "./protected_demo.html", 600);
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    clearDemoCookie();
+    setStatus("Demo cookie cleared. Refresh DevTools cookie view to confirm.", "warn");
+  });
+
+  document.getElementById("goProtectedBtn").addEventListener("click", () => {
+    window.location.href = "./protected_demo.html";
+  });
+
+  const current = getDemoCookie();
+  if (current) setStatus("Current demo_session cookie detected: " + current, "ok");
+  else setStatus("No demo_session cookie detected yet.", "muted");
+</script>
+</body>
+</html>
